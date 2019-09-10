@@ -1,52 +1,39 @@
-import Koa from 'koa';
+import Koa, { Context } from 'koa';
 import bodyParser from 'koa-bodyparser';
 import router from './routes';
 import { config } from './config';
 import { logger } from './logger';
+import { createConnection } from 'typeorm';
 
-const app = new Koa();
+async function setup() {
+  await createConnection();
 
-app.use(logger());
+  const app = new Koa();
 
-app.use(bodyParser({}));
+  app.use(logger());
 
-app.use(router.routes());
-app.use(router.allowedMethods());
+  app.use(async (ctx: Context, next) => {
+    try {
+      await next();
+    } catch (err) {
+      err.status = err.statusCode || err.status || 500;
+      ctx.body = {
+        status: err.status,
+        error: err.message,
+      };
+      ctx.status = err.status;
+      // ctx.app.emit('error', err, ctx);
+    }
+  });
 
-// app.use(async (ctx, next) => {
-//     try {
-//         await next();
-//     } catch (err) {
-//         ctx.status = err.status || 500;
-//         ctx.body = err.message;
-//         ctx.app.emit('error', err, ctx);
-//     }
-// });
-app.use(async (ctx, next) => {
-  try {
-    await next();
-  } catch (err) {
-    // will only respond with JSON
-    ctx.status = err.statusCode || err.status || 500;
-    ctx.body = {
-      message: err.message,
-    };
-  }
-});
+  app.use(bodyParser({}));
 
-app.on('error', (err, ctx) => {
-  console.log(err);
-  ctx.body = {
-    status: false,
-  };
-  /* centralized error handling:
-   *   console.log error
-   *   write error to log file
-   *   save error and request information to database if ctx.request match condition
-   *   ...
-   */
-});
+  app.use(router.routes());
+  app.use(router.allowedMethods());
 
-app.listen(config.port, () => {
-  console.log(`App started at port ${config.port}`);
-});
+  app.listen(config.port, () => {
+    console.log(`App started at port ${config.port}`);
+  });
+}
+
+setup();

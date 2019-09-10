@@ -21,14 +21,11 @@ export function logger(): (c: Context, next: () => Promise<any>) => void {
     const ms = new Date().getMilliseconds() - start;
 
     let logLevel = 'info';
-    if (ctx.status >= 500) {
-      logLevel = 'error';
-    }
     if (ctx.status >= 400) {
       logLevel = 'warn';
     }
-    if (ctx.status >= 100) {
-      logLevel = 'info';
+    if (ctx.status >= 500) {
+      logLevel = 'error';
     }
 
     const msg = `${ctx.method} ${ctx.originalUrl} ${ctx.status} ${ms}ms`;
