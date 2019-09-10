@@ -1,19 +1,16 @@
 import * as winston from 'winston';
 import { config } from './config';
-import { Context } from "koa";
+import { Context } from 'koa';
 const format = winston.format;
 const transports = winston.transports;
 
-export function logger(): (c: Context, next: any) => void {
-
+export function logger(): (c: Context, next: () => Promise<any>) => void {
   winston.configure({
     level: config.isDevelopment ? 'debug' : 'info',
     transports: [
-      new transports.File({filename: 'logs/error.log', level: 'error'}),
-      new transports.Console({
-        format: format.combine(format.colorize(), format.simple())
-      })
-    ]
+      new transports.File({ filename: 'logs/error.log', level: 'error' }),
+      new transports.Console({ format: format.combine(format.colorize(), format.simple()) }),
+    ],
   });
 
   return async (ctx: Context, next: () => Promise<any>) => {
@@ -23,7 +20,7 @@ export function logger(): (c: Context, next: any) => void {
 
     const ms = new Date().getMilliseconds() - start;
 
-    let logLevel: string = 'info';
+    let logLevel = 'info';
     if (ctx.status >= 500) {
       logLevel = 'error';
     }
@@ -36,5 +33,5 @@ export function logger(): (c: Context, next: any) => void {
 
     const msg = `${ctx.method} ${ctx.originalUrl} ${ctx.status} ${ms}ms`;
     winston.log(logLevel, msg);
-  }
+  };
 }

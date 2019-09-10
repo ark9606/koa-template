@@ -1,8 +1,8 @@
-import { Context } from "koa";
+import { Context } from 'koa';
 
 export class CatsController {
-    static async insertCat(ctx: Context) {
-        const { name, age } = ctx.request.body;
-        ctx.body = { name, age }
-    }
+  static async insertCat(ctx: Context) {
+    const { name, age } = ctx.request.body;
+    ctx.body = { name, age };
+  }
 }

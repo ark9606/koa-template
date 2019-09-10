@@ -1,4 +1,4 @@
 export interface HelloWorldReponse {
-    msg: string;
-    status: boolean;
+  msg: string;
+  status: boolean;
 }
